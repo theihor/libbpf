@@ -1,9 +1,6 @@
 name: libbpf-ci-coverity
 
-on:
-  schedule:
-    - cron:  '0 18 * * *'
-
+on: workflow_dispatch
 
 jobs:
   coverity:

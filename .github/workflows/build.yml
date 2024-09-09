@@ -1,10 +1,6 @@
 name: libbpf-build
 
-on:
-  pull_request:
-  push:
-  schedule:
-    - cron:  '0 18 * * *'
+on: workflow_dispatch
 
 concurrency:
   group: ci-build-${{ github.head_ref }}
