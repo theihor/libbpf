@@ -1,0 +1,46 @@
+From 79c0d2b920240720115892928ce94018e1503923 Mon Sep 17 00:00:00 2001
+From: Ihor Solodrai <isolodrai@meta.com>
+Date: Thu, 10 Oct 2024 13:43:11 -0700
+Subject: [PATCH] selftests/bpf: check for timeout in perf_link test
+
+---
+ tools/testing/selftests/bpf/prog_tests/perf_link.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/perf_link.c b/tools/testing/selftests/bpf/prog_tests/perf_link.c
+index 3a25f1c743a1..6ca515aefe66 100644
+--- a/tools/testing/selftests/bpf/prog_tests/perf_link.c
++++ b/tools/testing/selftests/bpf/prog_tests/perf_link.c
+@@ -4,8 +4,12 @@
+ #include <pthread.h>
+ #include <sched.h>
+ #include <test_progs.h>
++#include "testing_helpers.h"
+ #include "test_perf_link.skel.h"
+ 
++#define BURN_TIMEOUT_MS 100
++#define BURN_TIMEOUT_NS BURN_TIMEOUT_MS * 1000000
++
+ static void burn_cpu(void)
+ {
+ 	volatile int j = 0;
+@@ -63,8 +67,14 @@ void serial_test_perf_link(void)
+ 	ASSERT_GT(info.prog_id, 0, "link_prog_id");
+ 
+ 	/* ensure we get at least one perf_event prog execution */
+-	burn_cpu();
+-	ASSERT_GT(skel->bss->run_cnt, 0, "run_cnt");
++	__u64 timeout_time_ns = get_time_ns() + BURN_TIMEOUT_NS;
++	while (1) {
++		burn_cpu();
++		if (run_cnt > 0)
++			break;
++	        if (!ASSERT_LT(get_time_ns(), timeout_time_ns, "run_cnt_timeout"))
++			break;
++	}
+ 
+ 	/* perf_event is still active, but we close link and BPF program
+ 	 * shouldn't be executed anymore
+-- 
+2.39.5 (Apple Git-154)
+
