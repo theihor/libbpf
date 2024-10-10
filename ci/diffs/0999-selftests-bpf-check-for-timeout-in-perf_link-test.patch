@@ -33,7 +33,7 @@ index 3a25f1c743a1..6ca515aefe66 100644
 +	__u64 timeout_time_ns = get_time_ns() + BURN_TIMEOUT_NS;
 +	while (1) {
 +		burn_cpu();
-+		if (run_cnt > 0)
++		if (skel->bss->run_cnt > 0)
 +			break;
 +	        if (!ASSERT_LT(get_time_ns(), timeout_time_ns, "run_cnt_timeout"))
 +			break;
