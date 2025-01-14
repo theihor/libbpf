@@ -2090,7 +2090,7 @@ static int validate_type_id(int id)
 }
 
 /* generic append function for PTR, TYPEDEF, CONST/VOLATILE/RESTRICT */
-static int btf_add_ref_kind(struct btf *btf, int kind, const char *name, int ref_type_id)
+static int __btf_add_ref_kind(struct btf *btf, int kind, const char *name, int ref_type_id, int kflag)
 {
 	struct btf_type *t;
 	int sz, name_off = 0;
@@ -2113,10 +2113,15 @@ static int btf_add_ref_kind(struct btf *btf, int kind, const char *name, int ref
 	}
 
 	t->name_off = name_off;
-	t->info = btf_type_info(kind, 0, 0);
+	t->info = btf_type_info(kind, 0, kflag);
 	t->type = ref_type_id;
 
 	return btf_commit_type(btf, sz);
+}
+
+static inline int btf_add_ref_kind(struct btf *btf, int kind, const char *name, int ref_type_id)
+{
+	return __btf_add_ref_kind(btf, kind, name, ref_type_id, 0);
 }
 
 /*
@@ -2589,6 +2594,15 @@ int btf__add_type_tag(struct btf *btf, const char *value, int ref_type_id)
 		return libbpf_err(-EINVAL);
 
 	return btf_add_ref_kind(btf, BTF_KIND_TYPE_TAG, value, ref_type_id);
+}
+
+
+int btf__add_type_tag_attr(struct btf *btf, const char *value, int ref_type_id)
+{
+	if (!value || !value[0])
+		return libbpf_err(-EINVAL);
+
+	return __btf_add_ref_kind(btf, BTF_KIND_TYPE_TAG, value, ref_type_id, 1);
 }
 
 /*
