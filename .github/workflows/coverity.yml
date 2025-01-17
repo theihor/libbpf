@@ -1,9 +1,10 @@
 name: libbpf-ci-coverity
 
 on:
+  pull_request:
+  push:
   schedule:
     - cron:  '0 18 * * *'
-
 
 jobs:
   coverity:
@@ -13,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - name: Run coverity
+      - if: ${{ secrets.COVERITY_SCAN_TOKEN }}
+        name: Run coverity
         run: |
           source /tmp/ci_setup
           export COVERITY_SCAN_NOTIFICATION_EMAIL="${AUTHOR_EMAIL}"
